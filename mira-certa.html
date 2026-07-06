@@ -1,183 +1,703 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<title>Mira Certa — Pontuação de Tiro com Arco</title>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1B2418">
-
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mira Certa — Pontuação de Tiro com Arco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#1B2418;color:#F3EFE3;font-family:Inter}
-.wrap{max-width:480px;margin:auto;padding:10px}
-.brand{font-family:Bebas Neue;font-size:30px;color:#E8B23A}
-button{padding:10px;border-radius:10px;border:none;background:#E8B23A;font-weight:bold}
-.scoreboard{display:flex;justify-content:space-around;margin:10px 0}
-svg{width:100%}
+  :root{
+    --bg: #1B2418;
+    --bg-panel: #232E1F;
+    --bg-panel-2: #2A3624;
+    --line: #3A4536;
+    --cream: #F3EFE3;
+    --muted: #9BAA8F;
+    --gold: #E8B23A;
+    --gold-bright: #F5CC63;
+    --marker: #2FD9C4;
+    --marker-ink: #0A2E29;
+    --danger: #D9634A;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    padding-bottom: 2.5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wrap{
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  header.top{
+    padding: 20px 16px 12px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .brand{
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    letter-spacing: 0.03em;
+    color: var(--gold-bright);
+    line-height: 1;
+  }
+  .brand span{ color: var(--cream); }
+  .tagline{
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+  }
+  button.gear{
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .scoreboard{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 8px;
+    margin-bottom: 16px;
+  }
+  .sb-cell{
+    text-align: center;
+  }
+  .sb-label{
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .sb-value{
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--gold-bright);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .sb-value.small{ font-size: 22px; color: var(--cream); }
+  .target-area{
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto 14px;
+    touch-action: none;
+    user-select: none;
+  }
+  svg#target{
+    width: 100%;
+    height: auto;
+    display: block;
+    cursor: crosshair;
+  }
+  .hint{
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin: -6px 0 16px;
+  }
+  .actions{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .actions button{
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 4px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-panel);
+    color: var(--cream);
+    cursor: pointer;
+  }
+  .actions button:active{ transform: scale(0.97); }
+  .actions button.primary{
+    background: var(--gold);
+    color: #2A1D06;
+    border-color: var(--gold);
+  }
+  .actions button.warn{
+    color: var(--danger);
+  }
+  .ends-log{
+    margin-bottom: 18px;
+  }
+  .ends-log h3{
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 8px;
+    font-weight: 600;
+  }
+  .end-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .end-row .arrows{
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+  .end-row .subtotal{
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    color: var(--gold-bright);
+  }
+  .empty{
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    padding: 10px 0;
+  }
+  .modal-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(10,14,8,0.72);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 50;
+  }
+  .modal-backdrop.show{ display: flex; }
+  .modal{
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 480px;
+    max-height: 86vh;
+    overflow-y: auto;
+    padding: 20px 18px 26px;
+  }
+  .modal h2{
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: var(--gold-bright);
+    margin: 0 0 14px;
+    letter-spacing: 0.02em;
+  }
+  .report-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .report-cell{
+    background: var(--bg-panel-2);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .report-cell .lbl{
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .report-cell .val{
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--cream);
+  }
+  .modal .end-row{ background: var(--bg-panel-2); }
+  .modal-actions{
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .modal-actions button{
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 12px 4px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg-panel-2);
+    color: var(--cream);
+    cursor: pointer;
+  }
+  .modal-actions button.primary{
+    background: var(--gold);
+    color: #2A1D06;
+    border-color: var(--gold);
+  }
+  .settings-panel{
+    display: none;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .settings-panel.show{ display: block; }
+  .settings-panel label{
+    font-size: 12px;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .seg{
+    display: flex;
+    gap: 6px;
+  }
+  .seg button{
+    flex: 1;
+    padding: 9px 4px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg-panel-2);
+    color: var(--cream);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .seg button.active{
+    background: var(--gold);
+    color: #2A1D06;
+    border-color: var(--gold);
+  }
+  .arrow-marker{
+    animation: plop 0.22s ease-out;
+    transform-origin: center;
+  }
+  @keyframes plop{
+    0%{ transform: scale(0); opacity: 0.4; }
+    70%{ transform: scale(1.15); }
+    100%{ transform: scale(1); opacity: 1; }
+  }
+  .toast{
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: #2A1D06;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 999px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 60;
+  }
+  .toast.show{ opacity: 1; }
 </style>
-
 </head>
-
 <body>
 
+<header class="top">
+  <div>
+    <div class="brand">MIRA <span>CERTA</span></div>
+    <div class="tagline">pontuação de tiro com arco</div>
+  </div>
+  <button class="gear" onclick="toggleSettings()" aria-label="Configurações">⚙</button>
+</header>
+
 <div class="wrap">
-<div class="brand">MIRA CERTA</div>
 
-<div class="scoreboard">
-<div>Round: <span id="sbEnd">1</span></div>
-<div>Flechas: <span id="sbArrow">0/6</span></div>
-<div>Total: <span id="sbTotal">0</span></div>
+  <div class="settings-panel" id="settingsPanel">
+    <label>Flechas por Round</label>
+    <div class="seg" id="arrowsPerEndSeg">
+      <button data-v="3">3</button>
+      <button data-v="6">6</button>
+      <button data-v="12">12</button>
+    </div>
+  </div>
+
+  <div class="scoreboard">
+    <div class="sb-cell">
+      <div class="sb-label">Round</div>
+      <div class="sb-value small" id="sbEnd">1</div>
+    </div>
+    <div class="sb-cell">
+      <div class="sb-label">Flecha</div>
+      <div class="sb-value small" id="sbArrow">0/6</div>
+    </div>
+    <div class="sb-cell">
+      <div class="sb-label">Total</div>
+      <div class="sb-value" id="sbTotal">0</div>
+    </div>
+  </div>
+
+  <div class="target-area">
+    <svg id="target" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div class="hint">Toque no alvo onde a flecha acertou. Toque numa marca para apagá-la.</div>
+
+  <div class="actions">
+    <button class="warn" onclick="undoLast()">Desfazer</button>
+    <button onclick="registerMiss()">Errou (M)</button>
+    <button class="primary" onclick="closeEnd(true)">Novo Round</button>
+  </div>
+
+  <div class="ends-log">
+    <h3>Fins registrados</h3>
+    <div id="endsLog"><div class="empty">Nenhum Round concluído ainda</div></div>
+  </div>
+
+  <div class="actions" style="grid-template-columns: 1fr;">
+    <button class="primary" onclick="openReport()">Finalizar round e ver relatório</button>
+  </div>
+
 </div>
 
-<svg id="target" viewBox="0 0 600 600"></svg>
-
-<p>Toque no alvo onde a flecha acertou.</p>
-
-<button onclick="undoLast()">Desfazer</button> <button onclick="registerMiss()">Errou</button> <button onclick="closeEnd()">Novo Round</button> <button onclick="exportPDF()">Exportar PDF</button>
-
-<div id="log"></div>
-
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h2>Relatório do round</h2>
+    <div class="report-grid" id="reportGrid"></div>
+    <div id="reportEnds"></div>
+    <div class="modal-actions">
+      <button onclick="exportPDF()">Exportar PDF</button>
+      <button class="primary" onclick="newRound()">Novo round</button>
+    </div>
+    <div class="modal-actions">
+      <button onclick="closeReport()">Voltar</button>
+    </div>
+  </div>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-const R=260,CX=300,CY=300;
+const R = 260;
+const CX = 300, CY = 300;
+const RING_COLORS = {
+  1: '#F3EFE3', 2: '#F3EFE3',
+  3: '#1A1A1A', 4: '#0A0A0A',
+  5: '#4A8FD6', 6: '#1E5FA8',
+  7: '#E2564A', 8: '#C7332A',
+  9: '#F5CC63', 10: '#E8B23A'
+};
+const RING_STROKE = {1:'#7A7A72',2:'#7A7A72',3:'#000',4:'#000',5:'#134a80',6:'#134a80',7:'#7a1c15',8:'#7a1c15',9:'#a87a1f',10:'#a87a1f'};
 
-let state={arrowsPerEnd:6,ends:[],current:[]};
-
-const hitSound=new Audio("https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-jump-223.wav");
-
-function saveState(){
- localStorage.setItem("miraCerta",JSON.stringify(state));
-}
-function loadState(){
- let s=localStorage.getItem("miraCerta");
- if(s) state=JSON.parse(s);
-}
+let state = {
+  arrowsPerEnd: 6,
+  ends: [],
+  current: []
+};
 
 function buildTarget(){
- let svg=document.getElementById("target");
- let html="";
- for(let n=1;n<=10;n++){
-  let r=R*(11-n)/10;
-  html+=`<circle cx="${CX}" cy="${CY}" r="${r}" fill="${n>8?'#E8B23A':n>6?'#E2564A':n>4?'#4A8FD6':n>2?'#000':'#fff'}"/>`;
- }
- html+=`<g id="markers"></g>`;
- svg.innerHTML=html;
- svg.addEventListener("pointerdown",onTap);
+  const svg = document.getElementById('target');
+  svg.setAttribute('role','img');
+  let html = '';
+  for(let n=1; n<=10; n++){
+    const rad = R * (11-n)/10;
+    html += `<circle cx="${CX}" cy="${CY}" r="${rad}" fill="${RING_COLORS[n]}" stroke="${RING_STROKE[n]}" stroke-width="1"/>`;
+  }
+  html += `<circle cx="${CX}" cy="${CY}" r="${R*0.05}" fill="none" stroke="#8a611a" stroke-width="1.5"/>`;
+  html += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#7A7A72" stroke-width="2"/>`;
+  html += `<g id="markersLayer"></g>`;
+  svg.innerHTML = html;
+  svg.addEventListener('pointerdown', onTargetTap);
 }
 
 function svgPoint(evt){
- let rect=target.getBoundingClientRect();
- return {
-  x:(evt.clientX-rect.left)*(600/rect.width),
-  y:(evt.clientY-rect.top)*(600/rect.height)
- };
+  const svg = document.getElementById('target');
+  const rect = svg.getBoundingClientRect();
+  const scaleX = 600 / rect.width;
+  const scaleY = 600 / rect.height;
+  const x = (evt.clientX - rect.left) * scaleX;
+  const y = (evt.clientY - rect.top) * scaleY;
+  return {x, y};
 }
 
-function score(dx,dy){
- let d=Math.sqrt(dx*dx+dy*dy);
- if(d>R)return 0;
- return 10-Math.floor(d/(R/10));
+function scoreFor(dx, dy){
+  const d = Math.sqrt(dx*dx + dy*dy);
+  const ringWidth = R/10;
+  if(d > R) return {ring: 0, isX: false, isMiss: true};
+  let n = 10 - Math.floor(d/ringWidth);
+  if(n < 1) n = 1;
+  if(n > 10) n = 10;
+  const isX = d <= ringWidth/2;
+  return {ring: n, isX, isMiss: false};
 }
 
-function onTap(evt){
- if(state.current.length>=state.arrowsPerEnd)return;
+function onTargetTap(evt){
+  if(state.current.length >= state.arrowsPerEnd){
+    showToast('Round completo — toque em "Novo Round"');
+    return;
+  }
+  const p = svgPoint(evt);
+  const dx = p.x - CX, dy = p.y - CY;
 
- let p=svgPoint(evt);
- let dx=p.x-CX,dy=p.y-CY;
+  for(let i = state.current.length - 1; i >= 0; i--){
+    const a = state.current[i];
+    if(a.x === null) continue;
+    const mdx = a.x - p.x, mdy = a.y - p.y;
+    if(Math.sqrt(mdx*mdx + mdy*mdy) <= 16){
+      state.current.splice(i,1);
+      redrawMarkers();
+      updateScoreboard();
+      return;
+    }
+  }
 
- let ring=score(dx,dy);
-
- state.current.push({x:p.x,y:p.y,ring});
-
- hitSound.currentTime=0;
- hitSound.play();
-
- if(navigator.vibrate) navigator.vibrate(50);
-
- redraw();
- update();
- saveState();
-}
-
-function redraw(){
- let layer=document.getElementById("markers");
- let html="";
- state.current.forEach(a=>{
-  if(a.x==null)return;
-  html+=`<circle cx="${a.x}" cy="${a.y}" r="10" fill="#2FD9C4"/>`;
- });
- layer.innerHTML=html;
-}
-
-function update(){
- sbEnd.textContent=state.ends.length+1;
- sbArrow.textContent=state.current.length+"/"+state.arrowsPerEnd;
- let total=state.ends.flat().reduce((a,b)=>a+b.ring,0)+state.current.reduce((a,b)=>a+b.ring,0);
- sbTotal.textContent=total;
- renderLog();
-}
-
-function renderLog(){
- let html="";
- state.ends.forEach((e,i)=>{
-  html+=`<div>Round ${i+1}: ${e.map(a=>a.ring).join(",")}</div>`;
- });
- log.innerHTML=html;
-}
-
-function undoLast(){
- state.current.pop();
- redraw();
- update();
- saveState();
+  const s = scoreFor(dx, dy);
+  state.current.push({x: p.x, y: p.y, ring: s.isMiss ? 0 : s.ring, isX: s.isX, isMiss: s.isMiss});
+  redrawMarkers();
+  updateScoreboard();
+  if(state.current.length >= state.arrowsPerEnd){
+    showToast('Round completo');
+  }
+  saveState();
 }
 
 function registerMiss(){
- state.current.push({x:null,y:null,ring:0});
- update();
- saveState();
+  if(state.current.length >= state.arrowsPerEnd){
+    showToast('Round completo — toque em "Novo Round"');
+    return;
+  }
+  state.current.push({x: null, y: null, ring: 0, isX: false, isMiss: true});
+  updateScoreboard();
+  renderMissChip();
+  saveState();
 }
 
-function closeEnd(){
- if(state.current.length==0)return;
- state.ends.push(state.current);
- state.current=[];
- redraw();
- update();
- saveState();
+function renderMissChip(){}
+
+function redrawMarkers(){
+  const layer = document.getElementById('markersLayer');
+  let html = '';
+  state.current.forEach((a, idx) => {
+    if(a.x === null) return;
+    const label = a.isX ? 'X' : (a.isMiss ? 'M' : a.ring);
+    html += `<g class="arrow-marker">
+      <circle cx="${a.x}" cy="${a.y}" r="15" fill="${'#2FD9C4'}" stroke="#0A2E29" stroke-width="2"/>
+      <text x="${a.x}" y="${a.y+5}" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0A2E29" text-anchor="middle">${label}</text>
+    </g>`;
+  });
+  layer.innerHTML = html;
+}
+
+function undoLast(){
+  if(state.current.length === 0){
+    if(state.ends.length > 0){
+      state.current = state.ends.pop();
+      redrawMarkers();
+      updateScoreboard();
+      renderEndsLog();
+      showToast('Último Round reaberto');
+    }
+    return;
+  }
+  state.current.pop();
+  redrawMarkers();
+  updateScoreboard();
+  saveState();
+}
+
+function closeEnd(manual){
+  if(state.current.length === 0){
+    showToast('Nenhuma flecha registrada neste Round');
+    return;
+  }
+  state.ends.push(state.current);
+  state.current = [];
+  redrawMarkers();
+  renderEndsLog();
+  updateScoreboard();
+  saveState();
+}
+
+function arrowLabel(a){
+  if(a.isMiss) return 'M';
+  if(a.isX) return 'X';
+  return String(a.ring);
+}
+
+function sumEnd(end){
+  return end.reduce((acc,a) => acc + (a.isMiss ? 0 : a.ring), 0);
+}
+
+function renderEndsLog(){
+  const el = document.getElementById('endsLog');
+  if(state.ends.length === 0){
+    el.innerHTML = '<div class="empty">Nenhum Round concluído ainda</div>';
+    return;
+  }
+  let html = '';
+  state.ends.forEach((end, i) => {
+    const labels = end.map(arrowLabel).join(' · ');
+    html += `<div class="end-row"><span>Round ${i+1}<br><span class="arrows">${labels}</span></span><span class="subtotal">${sumEnd(end)}</span></div>`;
+  });
+  el.innerHTML = html;
+}
+
+function updateScoreboard(){
+  document.getElementById('sbEnd').textContent = state.ends.length + 1;
+  document.getElementById('sbArrow').textContent = `${state.current.length}/${state.arrowsPerEnd}`;
+  const total = state.ends.reduce((acc,e) => acc + sumEnd(e), 0) + sumEnd(state.current);
+  document.getElementById('sbTotal').textContent = total;
+}
+
+function toggleSettings(){
+  document.getElementById('settingsPanel').classList.toggle('show');
+}
+
+function setArrowsPerEnd(v){
+  state.arrowsPerEnd = v;
+  document.querySelectorAll('#arrowsPerEndSeg button').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.v) === v);
+  });
+  updateScoreboard();
+}
+
+document.getElementById('arrowsPerEndSeg').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  setArrowsPerEnd(parseInt(btn.dataset.v));
+});
+
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function allEndsIncludingCurrent(){
+  const all = state.current.length > 0 ? [...state.ends, state.current] : [...state.ends];
+  return all;
+}
+
+function openReport(){
+  const all = allEndsIncludingCurrent();
+  if(all.length === 0){
+    showToast('Registre pelo menos uma flecha');
+    return;
+  }
+  const allArrows = all.flat();
+  const total = all.reduce((acc,e) => acc + sumEnd(e), 0);
+  const arrowCount = allArrows.length;
+  const avg = arrowCount > 0 ? (total/arrowCount).toFixed(2) : '0.00';
+  const xCount = allArrows.filter(a => a.isX).length;
+  const tenCount = allArrows.filter(a => !a.isMiss && a.ring === 10).length;
+  const missCount = allArrows.filter(a => a.isMiss).length;
+
+  document.getElementById('reportGrid').innerHTML = `
+    <div class="report-cell"><div class="lbl">Pontuação total</div><div class="val">${total}</div></div>
+    <div class="report-cell"><div class="lbl">Flechas</div><div class="val">${arrowCount}</div></div>
+    <div class="report-cell"><div class="lbl">Média por flecha</div><div class="val">${avg}</div></div>
+    <div class="report-cell"><div class="lbl">X / 10 / falhas</div><div class="val">${xCount} / ${tenCount} / ${missCount}</div></div>
+  `;
+
+  let endsHtml = '';
+  all.forEach((end, i) => {
+    const labels = end.map(arrowLabel).join(' · ');
+    endsHtml += `<div class="end-row"><span>Round ${i+1}<br><span class="arrows">${labels}</span></span><span class="subtotal">${sumEnd(end)}</span></div>`;
+  });
+  document.getElementById('reportEnds').innerHTML = endsHtml;
+
+  document.getElementById('modalBackdrop').classList.add('show');
+}
+
+function closeReport(){
+  document.getElementById('modalBackdrop').classList.remove('show');
 }
 
 function exportPDF(){
- const {jsPDF}=window.jspdf;
- let doc=new jsPDF();
- let y=10;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
- doc.text("Relatório Mira Certa",10,y);
+  const all = allEndsIncludingCurrent();
+  const total = all.reduce((acc,e) => acc + sumEnd(e), 0);
+  const arrowCount = all.flat().length;
 
- state.ends.forEach((e,i)=>{
-  y+=10;
-  doc.text(`Round ${i+1}: ${e.map(a=>a.ring).join(",")}`,10,y);
- });
+  let y = 10;
 
- doc.save("relatorio.pdf");
+  doc.setFontSize(16);
+  doc.text("Relatório - Mira Certa", 10, y);
+
+  y += 10;
+  doc.setFontSize(10);
+  doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 10, y);
+
+  y += 10;
+
+  all.forEach((end, i) => {
+    doc.text(`Round ${i+1}: ${end.map(arrowLabel).join(', ')} = ${sumEnd(end)}`, 10, y);
+    y += 6;
+  });
+
+  y += 10;
+  doc.text(`Total: ${total} pontos`, 10, y);
+  y += 6;
+  doc.text(`Flechas: ${arrowCount}`, 10, y);
+
+  doc.save("relatorio-mira-certa.pdf");
 }
 
-if('serviceWorker' in navigator){
- navigator.serviceWorker.register('service-worker.js');
+function newRound(){
+  state.ends = [];
+  state.current = [];
+  redrawMarkers();
+  updateScoreboard();
+  renderEndsLog();
+  closeReport();
+  showToast('Novo round iniciado');
+  saveState();
+}
+
+function saveState(){
+  localStorage.setItem('miraCertaState', JSON.stringify(state));
+}
+
+function loadState(){
+  const saved = localStorage.getItem('miraCertaState');
+  if(saved){
+    state = JSON.parse(saved);
+  }
 }
 
 loadState();
 buildTarget();
-update();
+setArrowsPerEnd(state.arrowsPerEnd || 6);
+updateScoreboard();
+renderEndsLog();
 </script>
-
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
 </body>
 </html>
