@@ -330,7 +330,7 @@
 <div class="wrap">
 
   <div class="settings-panel" id="settingsPanel">
-    <label>Flechas por fim</label>
+    <label>Flechas por Round</label>
     <div class="seg" id="arrowsPerEndSeg">
       <button data-v="3">3</button>
       <button data-v="6">6</button>
@@ -340,7 +340,7 @@
 
   <div class="scoreboard">
     <div class="sb-cell">
-      <div class="sb-label">Fim</div>
+      <div class="sb-label">Round</div>
       <div class="sb-value small" id="sbEnd">1</div>
     </div>
     <div class="sb-cell">
@@ -361,12 +361,12 @@
   <div class="actions">
     <button class="warn" onclick="undoLast()">Desfazer</button>
     <button onclick="registerMiss()">Errou (M)</button>
-    <button class="primary" onclick="closeEnd(true)">Novo fim</button>
+    <button class="primary" onclick="closeEnd(true)">Novo Round</button>
   </div>
 
   <div class="ends-log">
     <h3>Fins registrados</h3>
-    <div id="endsLog"><div class="empty">Nenhum fim concluído ainda</div></div>
+    <div id="endsLog"><div class="empty">Nenhum Round concluído ainda</div></div>
   </div>
 
   <div class="actions" style="grid-template-columns: 1fr;">
@@ -448,7 +448,7 @@ function scoreFor(dx, dy){
 
 function onTargetTap(evt){
   if(state.current.length >= state.arrowsPerEnd){
-    showToast('Fim completo — toque em "Novo fim"');
+    showToast('Round completo — toque em "Novo Round"');
     return;
   }
   const p = svgPoint(evt);
@@ -471,13 +471,13 @@ function onTargetTap(evt){
   redrawMarkers();
   updateScoreboard();
   if(state.current.length >= state.arrowsPerEnd){
-    showToast('Fim completo');
+    showToast('Round completo');
   }
 }
 
 function registerMiss(){
   if(state.current.length >= state.arrowsPerEnd){
-    showToast('Fim completo — toque em "Novo fim"');
+    showToast('Round completo — toque em "Novo Round"');
     return;
   }
   state.current.push({x: null, y: null, ring: 0, isX: false, isMiss: true});
@@ -508,7 +508,7 @@ function undoLast(){
       redrawMarkers();
       updateScoreboard();
       renderEndsLog();
-      showToast('Último fim reaberto');
+      showToast('Último Round reaberto');
     }
     return;
   }
@@ -519,7 +519,7 @@ function undoLast(){
 
 function closeEnd(manual){
   if(state.current.length === 0){
-    showToast('Nenhuma flecha registrada neste fim');
+    showToast('Nenhuma flecha registrada neste Round');
     return;
   }
   state.ends.push(state.current);
@@ -542,13 +542,13 @@ function sumEnd(end){
 function renderEndsLog(){
   const el = document.getElementById('endsLog');
   if(state.ends.length === 0){
-    el.innerHTML = '<div class="empty">Nenhum fim concluído ainda</div>';
+    el.innerHTML = '<div class="empty">Nenhum Round concluído ainda</div>';
     return;
   }
   let html = '';
   state.ends.forEach((end, i) => {
     const labels = end.map(arrowLabel).join(' · ');
-    html += `<div class="end-row"><span>Fim ${i+1}<br><span class="arrows">${labels}</span></span><span class="subtotal">${sumEnd(end)}</span></div>`;
+    html += `<div class="end-row"><span>Round ${i+1}<br><span class="arrows">${labels}</span></span><span class="subtotal">${sumEnd(end)}</span></div>`;
   });
   el.innerHTML = html;
 }
@@ -616,7 +616,7 @@ function openReport(){
   let endsHtml = '';
   all.forEach((end, i) => {
     const labels = end.map(arrowLabel).join(' · ');
-    endsHtml += `<div class="end-row"><span>Fim ${i+1}<br><span class="arrows">${labels}</span></span><span class="subtotal">${sumEnd(end)}</span></div>`;
+    endsHtml += `<div class="end-row"><span>Round ${i+1}<br><span class="arrows">${labels}</span></span><span class="subtotal">${sumEnd(end)}</span></div>`;
   });
   document.getElementById('reportEnds').innerHTML = endsHtml;
 
@@ -639,7 +639,7 @@ function copyReport(){
   let text = `Relatório de tiro — Mira Certa\n`;
   text += `Data: ${new Date().toLocaleDateString('pt-BR')}\n\n`;
   all.forEach((end, i) => {
-    text += `Fim ${i+1}: ${end.map(arrowLabel).join(', ')}  =  ${sumEnd(end)}\n`;
+    text += `Round ${i+1}: ${end.map(arrowLabel).join(', ')}  =  ${sumEnd(end)}\n`;
   });
   text += `\nTotal: ${total} pontos em ${arrowCount} flechas\n`;
   text += `Média por flecha: ${avg}\n`;
