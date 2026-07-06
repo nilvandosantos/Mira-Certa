@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1B2418">
 <meta charset="UTF-8">
@@ -383,7 +384,7 @@
     <div class="report-grid" id="reportGrid"></div>
     <div id="reportEnds"></div>
     <div class="modal-actions">
-      <button onclick="copyReport()">Copiar texto</button>
+      <button onclick="exportPDF()">Exportar PDF</button>
       <button class="primary" onclick="newRound()">Novo round</button>
     </div>
     <div class="modal-actions">
@@ -475,6 +476,7 @@ function onTargetTap(evt){
   if(state.current.length >= state.arrowsPerEnd){
     showToast('Round completo');
   }
+  saveState();
 }
 
 function registerMiss(){
@@ -485,6 +487,7 @@ function registerMiss(){
   state.current.push({x: null, y: null, ring: 0, isX: false, isMiss: true});
   updateScoreboard();
   renderMissChip();
+  saveState();
 }
 
 function renderMissChip(){}
@@ -517,6 +520,7 @@ function undoLast(){
   state.current.pop();
   redrawMarkers();
   updateScoreboard();
+  saveState();
 }
 
 function closeEnd(manual){
@@ -529,6 +533,7 @@ function closeEnd(manual){
   redrawMarkers();
   renderEndsLog();
   updateScoreboard();
+  saveState();
 }
 
 function arrowLabel(a){
@@ -629,29 +634,36 @@ function closeReport(){
   document.getElementById('modalBackdrop').classList.remove('show');
 }
 
-function copyReport(){
+function exportPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
   const all = allEndsIncludingCurrent();
-  const allArrows = all.flat();
   const total = all.reduce((acc,e) => acc + sumEnd(e), 0);
-  const arrowCount = allArrows.length;
-  const avg = arrowCount > 0 ? (total/arrowCount).toFixed(2) : '0.00';
-  const xCount = allArrows.filter(a => a.isX).length;
-  const tenCount = allArrows.filter(a => !a.isMiss && a.ring === 10).length;
+  const arrowCount = all.flat().length;
 
-  let text = `Relatório de tiro — Mira Certa\n`;
-  text += `Data: ${new Date().toLocaleDateString('pt-BR')}\n\n`;
+  let y = 10;
+
+  doc.setFontSize(16);
+  doc.text("Relatório - Mira Certa", 10, y);
+
+  y += 10;
+  doc.setFontSize(10);
+  doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 10, y);
+
+  y += 10;
+
   all.forEach((end, i) => {
-    text += `Round ${i+1}: ${end.map(arrowLabel).join(', ')}  =  ${sumEnd(end)}\n`;
+    doc.text(`Round ${i+1}: ${end.map(arrowLabel).join(', ')} = ${sumEnd(end)}`, 10, y);
+    y += 6;
   });
-  text += `\nTotal: ${total} pontos em ${arrowCount} flechas\n`;
-  text += `Média por flecha: ${avg}\n`;
-  text += `X: ${xCount}   10s: ${tenCount}\n`;
 
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(() => showToast('Relatório copiado')).catch(() => showToast('Não foi possível copiar'));
-  } else {
-    showToast('Cópia não suportada neste navegador');
-  }
+  y += 10;
+  doc.text(`Total: ${total} pontos`, 10, y);
+  y += 6;
+  doc.text(`Flechas: ${arrowCount}`, 10, y);
+
+  doc.save("relatorio-mira-certa.pdf");
 }
 
 function newRound(){
@@ -662,13 +674,30 @@ function newRound(){
   renderEndsLog();
   closeReport();
   showToast('Novo round iniciado');
+  saveState();
 }
 
+function saveState(){
+  localStorage.setItem('miraCertaState', JSON.stringify(state));
+}
+
+function loadState(){
+  const saved = localStorage.getItem('miraCertaState');
+  if(saved){
+    state = JSON.parse(saved);
+  }
+}
+
+loadState();
 buildTarget();
-setArrowsPerEnd(6);
+setArrowsPerEnd(state.arrowsPerEnd || 6);
 updateScoreboard();
 renderEndsLog();
 </script>
-
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
 </body>
 </html>
